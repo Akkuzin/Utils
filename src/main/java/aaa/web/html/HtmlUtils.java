@@ -22,6 +22,14 @@ public class HtmlUtils {
 	@FieldDefaults(level = AccessLevel.PUBLIC, makeFinal = true)
 	@AllArgsConstructor
 	public enum StringToHtmlType {
+		TABLE_CELL_HTML_TEXT(asList(entry("&", "&amp;"),
+									entry("<", "&lt;"),
+									entry(">", "&gt;"),
+									entry("\"", "&quot;"),
+									entry("\r\n", "&nbsp;"),
+									entry("\n", "&nbsp;"),
+									entry("\r", "&nbsp;"),
+									entry("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))),
 		PLAIN_HTML_TEXT(asList(	entry("&", "&amp;"),
 								entry("<", "&lt;"),
 								entry(">", "&gt;"),

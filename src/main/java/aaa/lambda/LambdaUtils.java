@@ -2,7 +2,6 @@ package aaa.lambda;
 
 import lombok.NonNull;
 
-import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -40,10 +39,6 @@ public class LambdaUtils {
 
 	public static <T> Predicate<T> predicate(Predicate<T> predicate) {
 		return predicate;
-	}
-
-	public static <T, D extends Comparable<D>> Comparator<T> comparator(Function<T, D> extractor) {
-		return (t1, t2) -> extractor.apply(t1).compareTo(extractor.apply(t2));
 	}
 
 }

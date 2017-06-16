@@ -13,7 +13,7 @@ public class LambdaUtils {
 		return v -> clazz.isAssignableFrom(v.getClass()) ? clazz.cast(v) : null;
 	}
 
-	public static <T> Function<T, T> passBy(@NonNull Consumer<T> consumer) {
+	public static <T> Function<T, T> peek(@NonNull Consumer<T> consumer) {
 		return t -> {
 			consumer.accept(t);
 			return t;

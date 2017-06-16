@@ -4,7 +4,7 @@
 
 	<groupId>aaa.utils</groupId>
 	<artifactId>Utils</artifactId>
-	<version>1.1.4</version>
+	<version>1.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>Utils</name>
@@ -18,10 +18,10 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 
-		<lombok.version>1.16.8</lombok.version>
-		<commons-lang.version>3.4</commons-lang.version>
-		<commons-io.version>2.4</commons-io.version>
-		<guava.version>19.0</guava.version>
+		<lombok.version>1.16.16</lombok.version>
+		<commons-lang.version>3.6</commons-lang.version>
+		<commons-io.version>2.5</commons-io.version>
+		<guava.version>22.0</guava.version>
 
 		<junit.version>4.12</junit.version>
 

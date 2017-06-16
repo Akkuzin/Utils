@@ -1,11 +1,7 @@
 package aaa.basis;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
+import static aaa.lambda.LambdaUtils.peek;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,8 +9,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static aaa.lambda.LambdaUtils.passBy;
-import static java.util.Arrays.asList;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 public class LevinshteinTransformation {
 
@@ -51,7 +51,7 @@ public class LevinshteinTransformation {
 			super(OperationType.REPLACE);
 			this.place = place;
 			this.newValue = newValue;
-			this.action = passBy(list -> {
+			this.action = peek(list -> {
 				list.remove(place);
 				list.add(place, newValue);
 			});
@@ -70,7 +70,7 @@ public class LevinshteinTransformation {
 			super(OperationType.INSERT);
 			this.place = place;
 			this.newValue = newValue;
-			this.action = passBy(list -> list.add(place, newValue));
+			this.action = peek(list -> list.add(place, newValue));
 		}
 	}
 
@@ -84,7 +84,7 @@ public class LevinshteinTransformation {
 		public DeleteOperation(int place) {
 			super(OperationType.DELETE);
 			this.place = place;
-			this.action = passBy(list -> list.remove(place));
+			this.action = peek(list -> list.remove(place));
 		}
 	}
 
@@ -98,7 +98,7 @@ public class LevinshteinTransformation {
 		public SwapOperation(int place) {
 			super(OperationType.SWAP);
 			this.place = place;
-			this.action = passBy(list -> list.add(place + 1, list.remove(place)));
+			this.action = peek(list -> list.add(place + 1, list.remove(place)));
 		}
 	}
 

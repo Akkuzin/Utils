@@ -2,9 +2,9 @@ package aaa.lambda;
 
 import lombok.NonNull;
 
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.Collection;
+import java.util.function.*;
+import java.util.stream.Collector;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -90,5 +90,34 @@ public class LambdaUtils {
 				return sneakyThrow(ex);
 			}
 		};
+	}
+
+	public static <T, A, R, C extends Collection<T>> Collector<T, ?, R> unorderedBatches(int batchSize,
+	                                                                                     Supplier<C> containerSupplier,
+	                                                                                     Collector<C, A, R> downstream) {
+		class Acc {
+			C data = containerSupplier.get();
+			A accumulator = downstream.supplier().get();
+		}
+		BiConsumer<Acc, T> accumulator = (acc, t) -> {
+			acc.data.add(t);
+			if (acc.data.size() >= batchSize) {
+				downstream.accumulator().accept(acc.accumulator, acc.data);
+				acc.data = containerSupplier.get();
+			}
+		};
+		return Collector.of(Acc::new, accumulator,
+				(acc1, acc2) -> {
+					acc1.accumulator = downstream.combiner().apply(acc1.accumulator, acc2.accumulator);
+					for (T t : acc2.data) {
+						accumulator.accept(acc1, t);
+					}
+					return acc1;
+				}, acc -> {
+					if (!acc.data.isEmpty()) {
+						downstream.accumulator().accept(acc.accumulator, acc.data);
+					}
+					return downstream.finisher().apply(acc.accumulator);
+				}, Collector.Characteristics.UNORDERED);
 	}
 }

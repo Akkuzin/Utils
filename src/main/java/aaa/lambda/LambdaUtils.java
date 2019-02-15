@@ -5,6 +5,7 @@ import lombok.NonNull;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 public class LambdaUtils {
@@ -41,4 +42,53 @@ public class LambdaUtils {
 		return predicate;
 	}
 
+	@FunctionalInterface
+	public interface ThrowingFunction<T, R> {
+		R apply(T t) throws Exception;
+	}
+
+	@FunctionalInterface
+	public interface ThrowingConsumer<T> {
+		void accept(T t) throws Exception;
+	}
+
+	@FunctionalInterface
+	public interface ThrowingSupplier<T> {
+		T get() throws Exception;
+	}
+
+	@SuppressWarnings("unchecked")
+	static <T extends Exception, R> R sneakyThrow(Exception t) throws T {
+		throw (T) t;
+	}
+
+	public static <T, R> Function<T, R> sneakyThrows(ThrowingFunction<T, R> f) {
+		return t -> {
+			try {
+				return f.apply(t);
+			} catch (Exception ex) {
+				return sneakyThrow(ex);
+			}
+		};
+	}
+
+	public static <T> Consumer<T> sneakyThrows(ThrowingConsumer<T> c) {
+		return t -> {
+			try {
+				c.accept(t);
+			} catch (Exception ex) {
+				sneakyThrow(ex);
+			}
+		};
+	}
+
+	public static <T> Supplier<T> sneakyThrows(ThrowingSupplier<T> c) {
+		return () -> {
+			try {
+				return c.get();
+			} catch (Exception ex) {
+				return sneakyThrow(ex);
+			}
+		};
+	}
 }

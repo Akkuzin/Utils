@@ -1,33 +1,41 @@
 package aaa.lang.reflection;
 
-import java.lang.reflect.GenericDeclaration;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import aaa.lang.reflection.getter.GetterPropertyResolver;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import lombok.SneakyThrows;
+
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.*;
 import java.util.Stack;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class ReflectionUtils {
 
 	/**
 	 * Для некоторого класса (или интерфейса) определяет, каким классом был
 	 * параметризован один из его предков (реализующих классов) с generic-параметрами.
-	 * 
-	 * @param actualClass
-	 *            анализируемый класс
-	 * @param genericClass
-	 *            класс (или интерфейс), для которого определяется значение параметра
-	 * @param parameterIndex
-	 *            номер параметра
+	 *
+	 * @param actualClass    анализируемый класс
+	 * @param genericClass   класс (или интерфейс), для которого определяется значение параметра
+	 * @param parameterIndex номер параметра
 	 * @return класс, являющийся параметром с индексом parameterIndex в genericClass
 	 */
 	@SuppressWarnings("nls")
 	public static Class<?> getGenericParameterClass(final Class<?> actualClass,
-													final Class<?> genericClass,
-													final int parameterIndex) {
+	                                                final Class<?> genericClass,
+	                                                final int parameterIndex) {
 		// Прекращаем работу, если genericClass не является предком actualClass.
 		if (!genericClass.isAssignableFrom(actualClass) || genericClass.equals(actualClass)) {
 			throw new IllegalArgumentException("Class " + genericClass.getName()
-				+ " is not a superclass of " + actualClass.getName() + ".");
+					+ " is not a superclass of " + actualClass.getName() + ".");
 		}
 		final boolean isInterface = genericClass.isInterface();
 
@@ -56,8 +64,8 @@ public class ReflectionUtils {
 			}
 			// Проверяем, дошли мы до нужного предка или нет.
 			Type rawType =
-					isParameterizedType	? ((ParameterizedType) currentType).getRawType()
-										: currentType;
+					isParameterizedType ? ((ParameterizedType) currentType).getRawType()
+							: currentType;
 			if (!rawType.equals(genericClass)) {
 				// genericClass не является непосредственным родителем для текущего класса. Поднимаемся по иерархии дальше.
 				clazz = (Class<?>) rawType;
@@ -85,9 +93,9 @@ public class ReflectionUtils {
 			// Мы спустились до самого низа, но даже там нужный параметр не имеет явного задания.
 			// Следовательно из-за "Type erasure" узнать класс для параметра невозможно.
 			throw new IllegalStateException("Unable to resolve type variable "
-				+ result
-				+ "."
-				+ " Try to replace instances of parametrized class with its non-parameterized subtype.");
+					+ result
+					+ "."
+					+ " Try to replace instances of parametrized class with its non-parameterized subtype.");
 		}
 
 		if (result instanceof ParameterizedType) {
@@ -98,13 +106,13 @@ public class ReflectionUtils {
 		if (result == null) {
 			// Should never happen. :)
 			throw new IllegalStateException("Unable to determine actual parameter type for "
-				+ actualClass.getName() + ".");
+					+ actualClass.getName() + ".");
 		}
 
 		if (!(result instanceof Class<?>)) {
 			// Похоже, что параметр - массив, примитивный типи, интерфейс или еще-что-то, что не является классом.
 			throw new IllegalStateException("Actual parameter type for " + actualClass.getName()
-				+ " is not a Class.");
+					+ " is not a Class.");
 		}
 
 		return (Class<?>) result;
@@ -122,11 +130,11 @@ public class ReflectionUtils {
 			}
 		}
 		throw new IllegalStateException("Argument " + typeVariable.toString() + " is not found in "
-			+ genericDeclaration.toString() + ".");
+				+ genericDeclaration.toString() + ".");
 	}
 
-	public static Type getGenericInterface(	final Class<?> sourceClass,
-											final Class<?> genericInterface) {
+	public static Type getGenericInterface(final Class<?> sourceClass,
+	                                       final Class<?> genericInterface) {
 		for (Type type : sourceClass.getGenericInterfaces()) {
 			if (type instanceof Class<?>) {
 				if (genericInterface.isAssignableFrom((Class<?>) type)) {
@@ -139,5 +147,96 @@ public class ReflectionUtils {
 			}
 		}
 		return null;
+	}
+
+	public static <T> GetterPropertyResolver<T> makeGetterPropertyResolver(Class<T> clazz) {
+		return new GetterPropertyResolver(clazz);
+	}
+
+	private static final Cache<Method, Function> GETTERS = CacheBuilder.newBuilder()
+			.weakValues()
+			.build();
+
+	private static final Cache<Method, BiConsumer> SETTERS = CacheBuilder.newBuilder()
+			.weakValues()
+			.build();
+
+	@SneakyThrows
+	private static Function createGetter(MethodHandles.Lookup lookup, MethodHandle getter) {
+		return (Function) LambdaMetafactory.metafactory(lookup,
+				"apply",
+				MethodType.methodType(Function.class),
+				MethodType.methodType(Object.class,
+						Object.class), // Function.apply with erasure
+				getter,
+				getter.type())
+				.getTarget()
+				.invokeExact();
+	}
+
+	@SneakyThrows
+	private static BiConsumer createSetter(MethodHandles.Lookup lookup, MethodHandle setter) {
+		return (BiConsumer) LambdaMetafactory.metafactory(lookup,
+				"accept",
+				MethodType.methodType(BiConsumer.class),
+				MethodType.methodType(void.class,
+						Object.class,
+						Object.class), // BiConsumer.accept with erasure
+				setter,
+				setter.type())
+				.getTarget()
+				.invokeExact();
+	}
+
+	@SneakyThrows
+	public static Function reflectGetter(MethodHandles.Lookup lookup, Method getter) {
+		return GETTERS.get(getter, () -> createGetter(lookup, lookup.unreflect(getter)));
+	}
+
+	@SneakyThrows
+	public static BiConsumer reflectSetter(MethodHandles.Lookup lookup, Method setter) {
+		return SETTERS.get(setter, () -> createSetter(lookup, lookup.unreflect(setter)));
+	}
+
+	@SneakyThrows
+	public static <T, V> Function<T, V> asGetter(Member member) {
+		if (member instanceof Method || member instanceof Field) {
+			Lookup lookup = MethodHandles.lookup();
+			// this should be a getter method:
+			if (member instanceof Method) {
+				return (Function<T, V>) reflectGetter(lookup, (Method) member);
+			}
+			String name = capitalize(member.getName());
+			Field field = (Field) member;
+			try {
+				return (Function<T, V>) reflectGetter(lookup,
+						field.getDeclaringClass().getMethod("get"
+								+ name));
+			} catch (NoSuchMethodException e) {
+				return (Function<T, V>) reflectGetter(lookup,
+						field.getDeclaringClass().getMethod("is"
+								+ name));
+			}
+		} else {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	public static <T, V> Function<T, V> asGetter(Method method) {
+		return (Function<T, V>) reflectGetter(MethodHandles.lookup(), method);
+	}
+
+	@SneakyThrows
+	public static <T, V> BiConsumer<T, V> asSetter(Member member) {
+		if (member instanceof Method || member instanceof Field) {
+			Lookup lookup = MethodHandles.lookup();
+			if (member instanceof Method) {
+				return (BiConsumer<T, V>) reflectSetter(lookup, (Method) member);
+			}
+			return (BiConsumer<T, V>) reflectSetter(lookup, ((Field) member).getDeclaringClass()
+					.getMethod("set" + capitalize(member.getName()), ((Field) member).getType()));
+		} else {
+			throw new UnsupportedOperationException();
+		}
 	}
 }

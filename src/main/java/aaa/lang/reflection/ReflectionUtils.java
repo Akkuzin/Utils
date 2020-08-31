@@ -5,15 +5,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.SneakyThrows;
 
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
+import java.lang.invoke.*;
 import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.*;
 import java.util.Stack;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.function.*;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
@@ -175,17 +171,46 @@ public class ReflectionUtils {
 	}
 
 	@SneakyThrows
-	private static BiConsumer createSetter(MethodHandles.Lookup lookup, MethodHandle setter) {
-		return (BiConsumer) LambdaMetafactory.metafactory(lookup,
+	public static BiConsumer createSetter(MethodHandles.Lookup lookup,
+	                                      MethodHandle setter) {
+		Class<?> valueType = setter.type().parameterType(1);
+		if (valueType.isPrimitive()) {
+			if (valueType == boolean.class) {
+				ObjBooleanConsumer consumer = (ObjBooleanConsumer) createSetterCallSite(
+						lookup, setter, ObjBooleanConsumer.class, boolean.class).getTarget().invokeExact();
+				return (a, b) -> consumer.accept(a, (boolean) b);
+			} else if (valueType == long.class) {
+				ObjLongConsumer consumer = (ObjLongConsumer) createSetterCallSite(
+						lookup, setter, ObjLongConsumer.class, long.class).getTarget().invokeExact();
+				return (a, b) -> consumer.accept(a, (long) b);
+			} else if (valueType == double.class) {
+				ObjDoubleConsumer consumer = (ObjDoubleConsumer) createSetterCallSite(
+						lookup, setter, ObjDoubleConsumer.class, double.class).getTarget().invokeExact();
+				return (a, b) -> consumer.accept(a, (double) b);
+			} else if (valueType == int.class) {
+				ObjIntConsumer consumer = (ObjIntConsumer) createSetterCallSite(
+						lookup, setter, ObjIntConsumer.class, int.class).getTarget().invokeExact();
+				return (a, b) -> consumer.accept(a, (int) b);
+			} else {
+				throw new RuntimeException("Type is not supported yet: " + valueType.getName());
+			}
+		} else {
+			return (BiConsumer) createSetterCallSite(lookup, setter, BiConsumer.class, Object.class)
+					.getTarget().invokeExact();
+		}
+	}
+
+	@SneakyThrows
+	private static CallSite createSetterCallSite(MethodHandles.Lookup lookup,
+	                                             MethodHandle setter,
+	                                             Class<?> interfaceType,
+	                                             Class<?> valueType) {
+		return LambdaMetafactory.metafactory(lookup,
 				"accept",
-				MethodType.methodType(BiConsumer.class),
-				MethodType.methodType(void.class,
-						Object.class,
-						Object.class), // BiConsumer.accept with erasure
+				MethodType.methodType(interfaceType),
+				MethodType.methodType(void.class, Object.class, valueType),
 				setter,
-				setter.type())
-				.getTarget()
-				.invokeExact();
+				setter.type());
 	}
 
 	@SneakyThrows

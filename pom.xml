@@ -24,7 +24,7 @@
 		<guava.version>29.0-jre</guava.version>
 		<byte-buddy.version>1.10.14</byte-buddy.version>
 
-		<junit.version>4.13</junit.version>
+		<junit.version>4.13.1</junit.version>
 	</properties>
 
 	<dependencies>

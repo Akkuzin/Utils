@@ -1,13 +1,16 @@
 package aaa.lang.reflection;
 
 import aaa.lang.reflection.getter.GetterPropertyResolver;
+import aaa.lang.reflection.getter.PropertyNameCapturingInterceptor;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.SneakyThrows;
 
+import java.io.Serializable;
 import java.lang.invoke.*;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.*;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.function.*;
 
@@ -264,4 +267,48 @@ public class ReflectionUtils {
 			throw new UnsupportedOperationException();
 		}
 	}
+
+  private static final Cache<SerializableBiConsumer, String> SETTERS_TO_PROPERTIES =
+      CacheBuilder.newBuilder().weakValues().build();
+
+  private static final Cache<SerializableFunction, String> GETTERS_TO_PROPERTIES =
+      CacheBuilder.newBuilder().weakValues().build();
+
+  @SneakyThrows
+  public static <T, Q> String propertyNameFor(SerializableBiConsumer<T, Q> accessor) {
+    return SETTERS_TO_PROPERTIES.get(accessor, () -> accessorToName(accessor));
+  }
+
+  @SneakyThrows
+  public static <T, Q> String propertyNameFor(SerializableFunction<T, Q> accessor) {
+    return GETTERS_TO_PROPERTIES.get(accessor, () -> accessorToName(accessor));
+  }
+
+  public interface SerializableBiConsumer<A, B> extends BiConsumer<A, B>, Serializable {}
+
+  public interface SerializableFunction<A, B> extends Function<A, B>, Serializable {}
+
+  private static String accessorToName(Serializable accessor) {
+    return Optional.ofNullable(name(accessor))
+        .map(PropertyNameCapturingInterceptor::getPropertyName)
+        .orElse(null);
+  }
+
+  private static String name(Serializable accessor) {
+    for (Class<?> clazz = accessor.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+      try {
+        Method writeReplace = clazz.getDeclaredMethod("writeReplace");
+        writeReplace.setAccessible(true);
+        Object replacement = writeReplace.invoke(accessor);
+        if (!(replacement instanceof SerializedLambda)) {
+          break; // custom interface implementation
+        }
+        return ((SerializedLambda) replacement).getImplMethodName();
+      } catch (NoSuchMethodException e) {
+      } catch (IllegalAccessException | InvocationTargetException e) {
+        break;
+      }
+    }
+    return null;
+  }
 }

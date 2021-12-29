@@ -35,12 +35,15 @@ public class PropertyNameCapturingInterceptor {
 		if (method.getParameterTypes().length != 0 || method.getReturnType() == null) {
 			throw new IllegalArgumentException("Only property getter methods are expected to be passed");
 		}
-		String name = method.getName();
-		if (name.startsWith("get")) {
-			name = name.substring(3, 4).toLowerCase() + name.substring(4);
-		} else if (name.startsWith("is")) {
-			name = name.substring(2, 3).toLowerCase() + name.substring(3);
-		}
-		return name;
+		return getPropertyName(method.getName());
 	}
+
+  public static String getPropertyName(String name) {
+    if (name.startsWith("is")) {
+      name = name.substring(2, 3).toLowerCase() + name.substring(3);
+    } else if (name.startsWith("get") || name.startsWith("set")) {
+      name = name.substring(3, 4).toLowerCase() + name.substring(4);
+    }
+    return name;
+  }
 }

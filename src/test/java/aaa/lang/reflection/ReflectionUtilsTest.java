@@ -202,4 +202,12 @@ public class ReflectionUtilsTest {
 		assertEquals(123.45d, (double) valueGetter.apply(dto), 0.001);
 		assertEquals(true, checkGetter.apply(dto));
 	}
+
+  @Test
+  public void testPropertyNameFromGetter() {
+    assertEquals("name", ReflectionUtils.propertyNameFor(ResultDto::getName));
+    assertEquals("name", ReflectionUtils.propertyNameFor(ResultDto::setName));
+    assertEquals("check", ReflectionUtils.propertyNameFor(ResultDto::isCheck));
+    assertEquals("check", ReflectionUtils.propertyNameFor(ResultDto::setCheck));
+  }
 }

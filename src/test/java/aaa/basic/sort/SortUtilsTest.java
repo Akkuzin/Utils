@@ -1,13 +1,12 @@
 package aaa.basic.sort;
 
-import aaa.basis.sort.SortUtils;
-import org.junit.Test;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import aaa.basis.sort.SortUtils;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
 public class SortUtilsTest {
 
@@ -20,8 +19,7 @@ public class SortUtilsTest {
 	}
 
 	public <T extends Comparable<T>> void doFindTest(T[] array, T[] expect, T value) {
-		List<T> baseList = new ArrayList<>();
-		baseList.addAll(asList(array));
+    List<T> baseList = new ArrayList<>(asList(array));
 		baseList.add(SortUtils.findPlace(array, value, 0, 3), value);
 		assertEquals(asList(expect), baseList);
 	}

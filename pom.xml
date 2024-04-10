@@ -1,66 +1,54 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>aaa.utils</groupId>
-	<artifactId>Utils</artifactId>
-	<version>1.3.5</version>
-	<packaging>jar</packaging>
+    <groupId>aaa.utils</groupId>
+    <artifactId>Utils</artifactId>
+    <version>2.0.0</version>
+    <packaging>jar</packaging>
 
-	<name>Utils</name>
-	<url>http://maven.apache.org</url>
+    <name>Utils</name>
+    <url>https://github.com/Akkuzin/Utils</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
 
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <lombok.version>1.18.22</lombok.version>
-        <commons-lang.version>3.12.0</commons-lang.version>
-        <commons-io.version>2.11.0</commons-io.version>
-        <guava.version>31.0.1-jre</guava.version>
-        <byte-buddy.version>1.12.6</byte-buddy.version>
+        <lombok.version>1.18.32</lombok.version>
+        <commons-lang.version>3.14.0</commons-lang.version>
+        <commons-io.version>2.16.1</commons-io.version>
+        <commons-compress.version>1.26.2</commons-compress.version>
+        <commons-text.version>1.12.0</commons-text.version>
+        <junrar.version>7.5.5</junrar.version>
+        <xz.version>1.9</xz.version>
+        <guava.version>33.2.1-jre</guava.version>
+        <byte-buddy.version>1.14.17</byte-buddy.version>
+        <apache-tika.version>2.9.1</apache-tika.version>
+        <jpa-persistance.version>3.1.0</jpa-persistance.version>
 
-        <junit.version>4.13.2</junit.version>
+        <junit.version>5.10.2</junit.version>
+        <assertj.version>3.26.0</assertj.version>
     </properties>
 
     <!--@formatter:off -->
 
 	<dependencies>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>${lombok.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>${commons-lang.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>${commons-io.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>net.bytebuddy</groupId>
-			<artifactId>byte-buddy</artifactId>
-			<version>${byte-buddy.version}</version>
-		</dependency>
+		<dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>${lombok.version}</version></dependency>
+        <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>${junit.version}</version><scope>test</scope></dependency>
+        <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId><version>${assertj.version}</version><scope>test</scope></dependency>
+		<dependency><groupId>org.apache.commons</groupId><artifactId>commons-lang3</artifactId><version>${commons-lang.version}</version></dependency>
+		<dependency><groupId>commons-io</groupId><artifactId>commons-io</artifactId><version>${commons-io.version}</version></dependency>
+        <dependency><groupId>org.apache.commons</groupId><artifactId>commons-compress</artifactId><version>${commons-compress.version}</version></dependency>
+        <dependency><groupId>org.apache.commons</groupId><artifactId>commons-text</artifactId><version>${commons-text.version}</version></dependency>
+        <dependency><groupId>com.github.junrar</groupId><artifactId>junrar</artifactId><version>${junrar.version}</version></dependency>
+        <dependency><groupId>org.tukaani</groupId><artifactId>xz</artifactId><version>${xz.version}</version></dependency>
+		<dependency><groupId>com.google.guava</groupId><artifactId>guava</artifactId><version>${guava.version}</version></dependency>
+		<dependency><groupId>net.bytebuddy</groupId><artifactId>byte-buddy</artifactId><version>${byte-buddy.version}</version></dependency>
+        <dependency><groupId>jakarta.persistence</groupId><artifactId>jakarta.persistence-api</artifactId><version>${jpa-persistance.version}</version><scope>provided</scope></dependency>
 	</dependencies>
 
     <!--@formatter:on -->
@@ -70,18 +58,49 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                </configuration>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.8.4</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
                         <goals>
                             <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.2</version>
+                <configuration>
+                    <rulesUri>file:///${project.basedir}/dependency-rules.xml</rulesUri>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkUpdates</id>
+                        <goals>
+                            <goal>display-dependency-updates</goal>
+                            <goal>display-plugin-updates</goal>
                         </goals>
                     </execution>
                 </executions>

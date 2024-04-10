@@ -1,51 +1,57 @@
 package aaa.type.interval;
 
-import org.junit.Test;
+import static aaa.type.interval.IntervalUtils.parseInterval;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.ParseException;
-
-import static org.junit.Assert.*;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Test;
 
 public class IntervalUtilsTest {
 
-	@Test
-	public void testPositive() throws ParseException {
-		assertEquals(111 * 24 * 60 * 60 * 1000L, IntervalUtils.parseInterval("111")); //$NON-NLS-1$
-		assertEquals((111 * 60 + 12) * 60 * 1000L, IntervalUtils.parseInterval("111:12")); //$NON-NLS-1$
-		assertEquals((11 * 60 + 12) * 60 * 1000L, IntervalUtils.parseInterval("11:12")); //$NON-NLS-1$
-		assertEquals(	((111 * 24 + 12) * 60 + 13) * 60 * 1000L,
-						IntervalUtils.parseInterval("111 12:13")); //$NON-NLS-1$
-		assertEquals(	11123456789L * 24 * 60 * 60 * 1000L,
-						IntervalUtils.parseInterval("11123456789")); //$NON-NLS-1$
-	}
+  long millis(long days, int hours, int minutes, int seconds) {
+    return (((days * 24 + hours) * 60 + minutes) * 60 + seconds) * 1000L;
+  }
 
-	@Test
-	public void testPositiveWithSpaces() throws ParseException {
-		assertEquals(111 * 24 * 60 * 60 * 1000L, IntervalUtils.parseInterval("    111    ")); //$NON-NLS-1$
-		assertEquals((111 * 60 + 12) * 60 * 1000L, IntervalUtils.parseInterval(" 111 \t : 12  ")); //$NON-NLS-1$
-		assertEquals((11 * 60 + 12) * 60 * 1000L, IntervalUtils.parseInterval("	11  :  12\n   ")); //$NON-NLS-1$
-		assertEquals(	((111 * 24 + 12) * 60 + 13) * 60 * 1000L,
-						IntervalUtils.parseInterval("111 12:13")); //$NON-NLS-1$
-		assertEquals(111 * 24 * 60 * 60 * 1000L, IntervalUtils.parseInterval("	\n111 	")); //$NON-NLS-1$
-	}
+  @Test
+  @SneakyThrows
+  public void testPositive() {
+    assertEquals(millis(111, 0, 0, 0), parseInterval("111"));
+    assertEquals(millis(0, 0, 0, 30), parseInterval("00:00:30"));
+    assertEquals(millis(0, 111, 12, 0), parseInterval("111:12"));
+    assertEquals(millis(0, 11, 12, 0), parseInterval("11:12"));
+    assertEquals(millis(111, 12, 13, 0), parseInterval("111 12:13"));
+    assertEquals(millis(11123456789L, 0, 0, 0), parseInterval("11123456789"));
+  }
 
-	@Test(expected = ParseException.class)
-	public void testNegative1() throws ParseException {
-		assertEquals(-1, IntervalUtils.parseInterval("11:123")); //$NON-NLS-1$
-	}
+  @Test
+  @SneakyThrows
+  public void testPositiveWithSpaces() {
+    assertEquals(millis(111, 0, 0, 0), parseInterval("    111    "));
+    assertEquals(millis(0, 111, 12, 0), parseInterval(" 111 \t : 12  "));
+    assertEquals(millis(0, 11, 12, 0), parseInterval("	11  :  12\n   "));
+    assertEquals(millis(111, 12, 13, 0), parseInterval("111 12:13"));
+    assertEquals(millis(111, 0, 0, 0), parseInterval("	\n111 	"));
+  }
 
-	@Test(expected = ParseException.class)
-	public void testNegative2() throws ParseException {
-		assertEquals(-1, IntervalUtils.parseInterval("XXX")); //$NON-NLS-1$
-	}
+  @Test
+  public void testNegative1() {
+    assertThatThrownBy(() -> parseInterval("11:123")).isInstanceOf(ParseException.class);
+  }
 
-	@Test(expected = ParseException.class)
-	public void testNegative3() throws ParseException {
-		assertEquals(-1, IntervalUtils.parseInterval("11:123 19")); //$NON-NLS-1$
-	}
+  @Test
+  public void testNegative2() {
+    assertThatThrownBy(() -> parseInterval("XXX")).isInstanceOf(ParseException.class);
+  }
 
-	@Test(expected = ParseException.class)
-	public void testNegative4() throws ParseException {
-		assertEquals(-1, IntervalUtils.parseInterval("11::12")); //$NON-NLS-1$
-	}
+  @Test
+  public void testNegative3() {
+    assertThatThrownBy(() -> parseInterval("11:123 19")).isInstanceOf(ParseException.class);
+  }
+
+  @Test
+  public void testNegative4() {
+    assertThatThrownBy(() -> parseInterval("11::12")).isInstanceOf(ParseException.class);
+  }
 }

@@ -2,11 +2,11 @@ package aaa.lang.reflection.getter;
 
 public interface PropertyNameCapturer {
 
-	String getPropertyName();
+  String getPropertyName();
 
-	void setPropertyName(String propertyName);
+  void setPropertyName(String propertyName);
 
-	Class getPropertyType();
+  Class getPropertyType();
 
-	void setPropertyType(Class propertyClass);
+  void setPropertyType(Class propertyClass);
 }

@@ -1,39 +1,42 @@
 package aaa.basic.text;
 
-import aaa.basis.text.SimpleMonospaceWordWrapper;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import aaa.basis.text.SimpleMonospaceWordWrapper;
+import org.junit.jupiter.api.Test;
 
 public class SimpleMonospaceWordWrapperTest {
 
-	@SuppressWarnings("nls")
-	@Test
-	public void splitByMaxLengthTest() {
-		assertEquals(asList("aaa", "aaa", "aaa", "aa"), SimpleMonospaceWordWrapper.builder()
-				.delimiter(" ")
-				.maxLength(MAX_LENGTH_FOR_SPLIT_3)
-				.separatorChars("\n\r \t")
-				.build()
-				.apply("aaa\naaa\naaa\naa"));
+  @Test
+  public void splitByMaxLengthTest() {
+    assertThat(
+            SimpleMonospaceWordWrapper.builder()
+                .delimiter(" ")
+                .maxLength(MAX_LENGTH_FOR_SPLIT_3)
+                .separatorChars("\n\r \t")
+                .build()
+                .apply("aaa\naaa\naaa\naa"))
+        .containsExactly("aaa", "aaa", "aaa", "aa");
 
-		assertEquals(asList("aaa", "aaa", "aaa", "aa"), SimpleMonospaceWordWrapper.builder()
-				.delimiter(" ")
-				.maxLength(MAX_LENGTH_FOR_SPLIT_3)
-				.separatorChars("\n\r \t")
-				.build()
-				.apply("aaaaaaaaaaa"));
+    assertThat(
+            SimpleMonospaceWordWrapper.builder()
+                .delimiter(" ")
+                .maxLength(MAX_LENGTH_FOR_SPLIT_3)
+                .separatorChars("\n\r \t")
+                .build()
+                .apply("aaaaaaaaaaa"))
+        .containsExactly("aaa", "aaa", "aaa", "aa");
 
-		assertEquals(asList("aa bb", "aaaa", "a", "aaaa"), SimpleMonospaceWordWrapper.builder()
-				.delimiter(" ")
-				.maxLength(MAX_LENGTH_FOR_SPLIT_5)
-				.separatorChars("\n\r \t")
-				.build()
-				.apply("aa bb aaaa a aaaa"));
-	}
+    assertThat(
+            SimpleMonospaceWordWrapper.builder()
+                .delimiter(" ")
+                .maxLength(MAX_LENGTH_FOR_SPLIT_5)
+                .separatorChars("\n\r \t")
+                .build()
+                .apply("aa bb aaaa a aaaa"))
+        .containsExactly("aa bb", "aaaa", "a", "aaaa");
+  }
 
-	static final int MAX_LENGTH_FOR_SPLIT_3 = 3;
-	static final int MAX_LENGTH_FOR_SPLIT_5 = 5;
-
+  static final int MAX_LENGTH_FOR_SPLIT_3 = 3;
+  static final int MAX_LENGTH_FOR_SPLIT_5 = 5;
 }

@@ -31,7 +31,7 @@
         <jpa-persistance.version>3.1.0</jpa-persistance.version>
 
         <junit.version>5.10.2</junit.version>
-        <assertj.version>3.26.0</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
     </properties>
 
     <!--@formatter:off -->

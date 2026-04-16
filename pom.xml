@@ -23,7 +23,7 @@
         <commons-io.version>2.16.1</commons-io.version>
         <commons-compress.version>1.26.2</commons-compress.version>
         <commons-text.version>1.12.0</commons-text.version>
-        <junrar.version>7.5.5</junrar.version>
+        <junrar.version>7.5.10</junrar.version>
         <xz.version>1.9</xz.version>
         <guava.version>33.2.1-jre</guava.version>
         <byte-buddy.version>1.14.17</byte-buddy.version>
